@@ -18,11 +18,20 @@ namespace Premy.Chatovatko.Client.Libs.Database
             ParseIJTypeMessage(context, decoded, senderId, messageId, myUserId);    
         }
 
-        public static void ParseIJTypeMessage(Context context, IJType decoded, long senderId, long messageId, long myUserId)
+        /// <summary>
+        /// Returns PublicId of blob, if updating. Else null.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="decoded"></param>
+        /// <param name="senderId"></param>
+        /// <param name="messageId"></param>
+        /// <param name="myUserId"></param>
+        public static bool ParseIJTypeMessage(Context context, IJType decoded, long senderId, long messageId, long myUserId)
         {
+            bool updating = false;
             if(decoded == null)
             {
-                return;
+                return false;
             }
             if(context.Contacts
                 .Where(u => u.PublicId == senderId)
@@ -93,11 +102,11 @@ namespace Premy.Chatovatko.Client.Libs.Database
 
                 case JsonTypes.MESSAGES:
                     JMessage jmessage = (JMessage)decoded;
-                    permission = permission || (
-                       from threads in context.MessagesThread
-                       where threads.PublicId == jmessage.MessageThreadId
-                       select threads.WithUser
-                       ).SingleOrDefault() == senderId;
+                    var messageSender = (
+                        from threads in context.MessagesThread
+                        where threads.PublicId == jmessage.MessageThreadId
+                        select new { threads.WithUser }).SingleOrDefault();
+                    permission = permission || messageSender.WithUser == senderId;
 
                     if (permission)
                     {

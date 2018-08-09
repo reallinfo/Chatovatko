@@ -174,40 +174,49 @@ namespace Premy.Chatovatko.Server.ClientListener
 
             using (Context context = new Context(config))
             {
+
 #if (DEBUG)
-                Log($"Receiving and saving {capsula.recepientIds.Count} blobs.");
+                Log($"Deleting {capsula.messageToDeleteIds.Count} blobs.");
+#endif
+                foreach (var toDeleteId in capsula.messageToDeleteIds)
+                {
+                    var toDelete = context.BlobMessages
+                        .Where(u => u.RecepientId == user.UserId && u.Id == toDeleteId).SingleOrDefault();
+                    if (toDelete != null)
+                    {
+                        context.BlobMessages.Remove(toDelete);
+                    }
+                }
+#if (DEBUG)
+                Log($"Receiving and saving {capsula.metaMessages.Count} blobs.");
 #endif
                 
-                foreach (var messageRecepientId in capsula.recepientIds)
+                foreach (var metaMessage in capsula.metaMessages)
                 {
                     BlobMessages blobMessage = new BlobMessages()
                     {
                         Content = BinaryEncoder.ReceiveBytes(stream),
-                        RecepientId = (int)messageRecepientId,
+                        RecepientId = (int)metaMessage.RecepientId,
                         SenderId = user.UserId
                     };
+
+                    //It is nessary to keep order of blocks, when updating
+                    if(metaMessage.PublicId != null)
+                    {
+                        blobMessage.Id = (int)metaMessage.PublicId;
+                    }
+
                     context.BlobMessages.Add(blobMessage);
                     context.SaveChanges();
 
-                    if (messageRecepientId == user.UserId)
+                    if (metaMessage.RecepientId == user.UserId)
                     {
                         response.MessageIds.Add(blobMessage.Id);
                         messagesIdsUploaded.Add(blobMessage.Id);
                     }
                     context.SaveChanges();
                 }
-#if (DEBUG)
-                Log($"Deleting {capsula.messageToDeleteIds.Count} blobs.");
-#endif
-                foreach(var toDeleteId in capsula.messageToDeleteIds)
-                {
-                    var toDelete = context.BlobMessages
-                        .Where(u => u.RecepientId == user.UserId && u.Id == toDeleteId).SingleOrDefault();
-                    if(toDelete != null)
-                    { 
-                        context.BlobMessages.Remove(toDelete);
-                    }
-                }
+
                 context.SaveChanges();
             }
 

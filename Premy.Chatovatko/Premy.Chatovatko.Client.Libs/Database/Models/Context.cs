@@ -333,6 +333,10 @@ namespace Premy.Chatovatko.Client.Libs.Database.Models
                     .HasColumnName("blob_messages_id")
                     .HasColumnType("INT");
 
+                entity.Property(e => e.PublicId)
+                    .HasColumnName("public_id")
+                    .HasColumnType("INT");
+
                 entity.Property(e => e.RecepientId)
                     .HasColumnName("recepient_id")
                     .HasColumnType("INT");

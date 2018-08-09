@@ -74,9 +74,9 @@ CREATE TABLE `main`.`settings` (
   --------------------------------------
   CREATE TABLE IF NOT EXISTS `main`.`messages` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `id_messages_thread` INT NOT NULL, -- REFERENCES `messages_thread` (public_id) --Can't be entered explicitly, because message can be loaded sooner than message_thread
-									 --	ON DELETE RESTRICT
-									 --	ON UPDATE CASCADE,
+  `id_messages_thread` INT NOT NULL REFERENCES `messages_thread` (public_id)
+   ON DELETE RESTRICT
+   ON UPDATE CASCADE,
   `text` MEDIUMTEXT NOT NULL,
   `date` DATETIME NOT NULL,
   `blob_messages_id` INT NOT NULL REFERENCES `blob_messages` (id)
@@ -91,4 +91,5 @@ CREATE TABLE `main`.`settings` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `recepient_id` INT NOT NULL REFERENCES `contacts` (`public_id`),
   `blob` BLOB NOT NULL,
-  `blob_messages_id` INT NULL REFERENCES `blob_messages` (id));
+  `blob_messages_id` INT NULL REFERENCES `blob_messages` (id),
+  `public_id` INT NULL);
